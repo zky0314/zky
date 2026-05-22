@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智享娱乐终端</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background-color: #09090b; 
+            color: #f4f4f5;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 弹窗遮罩层 */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(9, 9, 11, 0.85);
+            backdrop-filter: blur(25px);
+            -webkit-backdrop-filter: blur(25px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+
+        .modal-content {
+            background: rgba(24, 24, 27, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 60px 80px;
+            border-radius: 24px;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 90%;
+        }
+
+        .modal-text {
+            font-size: 32px;
+            color: #f4f4f5;
+            margin-bottom: 40px;
+            font-weight: 300;
+            letter-spacing: 8px;
+            line-height: 1.8;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+        }
+
+        .close-btn {
+            padding: 12px 48px;
+            font-size: 13px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 30px;
+            cursor: not-allowed;
+            background: transparent;
+            color: #71717a;
+            font-weight: 500;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn.active {
+            background-color: #ffffff;
+            color: #09090b;
+            border-color: #ffffff;
+            cursor: pointer;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.25);
+        }
+
+        /* 顶部状态栏 */
+        .header {
+            height: 50px;
+            background-color: #18181b;
+            border-bottom: 1px solid #27272a;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .status-container {
+            display: flex;
+            align-items: center;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 1px;
+            color: #a1a1aa;
+        }
+
+        .status-dot {
+            width: 10px;
+            height: 10px;
+            background-color: #ef4444;
+            border-radius: 50%;
+            margin-right: 10px;
+            box-shadow: 0 0 12px #ef4444;
+            animation: pulse-red 2s infinite;
+        }
+
+        @keyframes pulse-red {
+            0% { opacity: 0.6; box-shadow: 0 0 8px #ef4444; }
+            50% { opacity: 1; box-shadow: 0 0 16px #ef4444; }
+            100% { opacity: 0.6; box-shadow: 0 0 8px #ef4444; }
+        }
+
+        .account-info {
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            gap: 12px;
+        }
+
+        .account-tag { color: #a1a1aa; }
+        .account-value { color: #3b82f6; font-weight: bold; }
+        .divider { color: #3f3f46; }
+
+        /* 宣传栏 */
+        .promo-section {
+            background: linear-gradient(135deg, #18181b 0%, #09090b 100%);
+            border-bottom: 1px solid #27272a;
+            padding: 16px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 24px;
+        }
+
+        .promo-brand {
+            display: flex;
+            flex-direction: column;
+            border-left: 4px solid #3b82f6;
+            padding-left: 16px;
+            min-width: 180px;
+        }
+
+        .promo-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+        }
+
+        .wechat-badge {
+            font-size: 11px;
+            background: rgba(34, 197, 94, 0.15);
+            color: #4ade80;
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            padding: 2px 8px;
+            border-radius: 4px;
+        }
+
+        .promo-grid {
+            display: flex;
+            flex: 1;
+            justify-content: space-between;
+            gap: 20px;
+        }
+
+        .promo-card {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 10px 16px;
+            border-radius: 8px;
+        }
+
+        .card-label {
+            font-size: 11px;
+            color: #71717a;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .card-content {
+            font-size: 13px;
+            color: #e4e4e7;
+            font-weight: 500;
+        }
+
+        .highlight { color: #f59e0b; }
+
+        /* 内容双屏区 */
+        .workspace {
+            flex: 1;
+            display: flex;
+            width: 100%;
+            height: calc(100vh - 160px);
+            background-color: #09090b;
+        }
+
+        .chat-container {
+            width: 33.333%;
+            height: 100%;
+            border-right: 1px solid #27272a;
+        }
+
+        .game-container {
+            width: 66.666%;
+            height: 100%;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background-color: #09090b;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- 诗意加载弹窗 -->
+    <div class="modal-overlay" id="popupModal">
+        <div class="modal-content">
+            <div class="modal-text">爱意随风起<br>风止意难平</div>
+            <button class="close-btn" id="closeBtn" disabled>等待载入 (8s)</button>
+        </div>
+    </div>
+
+    <!-- 核心逻辑：立即执行倒计时，不等待网页加载 -->
+    <script>
+        const modal = document.getElementById('popupModal');
+        const closeBtn = document.getElementById('closeBtn');
+        let timeLeft = 8; 
+
+        // 立即启动 8秒 倒计时
+        const timer = setInterval(() => {
+            timeLeft--;
+            if (timeLeft > 0) {
+                closeBtn.innerText = `等待载入 (${timeLeft}s)`;
+            } else {
+                clearInterval(timer);
+                closeBtn.innerText = "进入终端";
+                closeBtn.removeAttribute('disabled');
+                closeBtn.classList.add('active'); 
+            }
+        }, 1000);
+
+        // 关闭按钮事件
+        closeBtn.addEventListener('click', () => {
+            if (timeLeft <= 0) {
+                modal.style.opacity = '0';
+                setTimeout(() => {
+                    modal.style.display = 'none';
+                }, 500); 
+            }
+        });
+    </script>
+
+    <!-- 网页头部 -->
+    <header class="header">
+        <div class="status-container">
+            <div class="status-dot"></div>
+            <span>无互联网连接</span>
+        </div>
+        
+        <div class="account-info">
+            <span class="account-tag">聊天账号</span>
+            <span class="account-value">6000</span>
+            <span class="divider">|</span>
+            <span class="account-tag">密码</span>
+            <span class="account-value">wsmn985090</span>
+        </div>
+    </header>
+
+    <!-- 金博教育宣传栏 -->
+    <section class="promo-section">
+        <div class="promo-brand">
+            <h2 class="promo-title">金博教育</h2>
+            <div class="wechat-badge">微信号: d13193371106</div>
+        </div>
+        
+        <div class="promo-grid">
+            <div class="promo-card">
+                <span class="card-label">教学特点</span>
+                <span class="card-content"><span class="highlight">1v1 辅导</span> 与 <span class="highlight">自主自习</span></span>
+            </div>
+            <div class="promo-card">
+                <span class="card-label">自习环境</span>
+                <span class="card-content">提供 WiFi 查询资料 / 独立房间空调开放</span>
+            </div>
+            <div class="promo-card">
+                <span class="card-label">美食保障</span>
+                <span class="card-content">允许<span class="highlight">随时呼叫外卖</span></span>
+            </div>
+            <div class="promo-card" style="max-width: 120px;">
+                <span class="card-label">费用</span>
+                <span class="card-content highlight" style="font-weight: bold;">费用较少</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- 双屏区域（src初始为空，防止卡死倒计时） -->
+    <div class="workspace">
+        <div class="chat-container">
+            <iframe id="chatFrame" title="聊天"></iframe>
+        </div>
+        
+        <div class="game-container">
+            <iframe id="gameFrame" allowfullscreen title="游戏"></iframe>
+        </div>
+    </div>
+
+    <!-- 异步加载 iframe 资源 -->
+    <script>
+        // 延时 500 毫秒后，在后台静默加载双系统，此时倒计时已经在平稳运行
+        setTimeout(() => {
+            document.getElementById('chatFrame').src = "https://jmjsb.com";
+            document.getElementById('gameFrame').src = "https://retrogames.games/cn";
+        }, 500);
+    </script>
+</body>
+</html>"
